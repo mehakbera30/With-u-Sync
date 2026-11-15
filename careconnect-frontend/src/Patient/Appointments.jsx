@@ -184,7 +184,7 @@ const Appointments = () => {
       <Sidebar />
 
       {/* Main Content */}
-      <main className="ml-64 flex-1">
+      <main className="lg:ml-64 flex-1">
 
         {/* Navbar */}
         <header className="h-20 bg-gradient-to-r from-teal-100 border-b border-teal-200 px-8 flex items-center justify-between shadow-sm">

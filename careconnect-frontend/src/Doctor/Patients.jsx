@@ -152,7 +152,7 @@ const Patients = () => {
 
         <DoctorSidebar />
 
-        <main className="ml-64">
+        <main className="lg:ml-64">
 
           <div className="h-20 bg-gradient-to-r from-teal-100 border-teal-500 px-8 flex items-center justify-between shadow-sm">
 
@@ -199,7 +199,7 @@ const Patients = () => {
 
       <DoctorSidebar />
 
-      <main className="ml-64">
+      <main className="lg:ml-64">
 
         {/* ================= HEADER ================= */}
 
@@ -301,7 +301,7 @@ const Patients = () => {
 
             <div className="overflow-x-auto">
 
-              <table className="w-full">
+              <div className="overflow-x-auto"><table className="w-full">
 
                 <thead className="bg-slate-50">
 
@@ -471,7 +471,7 @@ const Patients = () => {
 
                 </tbody>
 
-              </table>
+              </table></div>
 
             </div>
 

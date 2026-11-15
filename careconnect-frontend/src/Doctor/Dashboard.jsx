@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import {
   Search,
@@ -103,6 +102,7 @@ const Dashboard = () => {
 
   const today = new Date();
 
+  // Convert date into the same format used by appointments
   const todayString =
     today.toLocaleDateString("en-GB", {
       day: "2-digit",
@@ -153,49 +153,23 @@ const Dashboard = () => {
 
   // ================= SEARCH =================
 
-  // Empty search: show today's appointments.
-  // Search entered: search across ALL appointments.
-
-  const searchResults = search.trim()
-    ? appointments.filter((appointment) => {
+  const searchResults =
+    todaysAppointments.filter(
+      (appointment) => {
 
         const searchText =
-          search.trim().toLowerCase();
-
-        const patientName =
-          appointment.patientName ||
-          appointment.patient?.name ||
-          "";
+          search.toLowerCase();
 
         return (
-          patientName.toLowerCase().includes(searchText) ||
-
+          appointment.patientName
+            ?.toLowerCase()
+            .includes(searchText) ||
           appointment.type
-            ?.toLowerCase()
-            .includes(searchText) ||
-
-          appointment.doctorName
-            ?.toLowerCase()
-            .includes(searchText) ||
-
-          appointment.doctor?.name
-            ?.toLowerCase()
-            .includes(searchText) ||
-
-          appointment.specialization
-            ?.toLowerCase()
-            .includes(searchText) ||
-
-          appointment.status
-            ?.toLowerCase()
-            .includes(searchText) ||
-
-          appointment.reason
             ?.toLowerCase()
             .includes(searchText)
         );
-      })
-    : todaysAppointments;
+      }
+    );
 
   // ================= RECENT PATIENTS =================
 
@@ -219,6 +193,16 @@ const Dashboard = () => {
       )
       .slice(0, 3);
 
+  // ================= DOCTOR INITIALS =================
+
+  const doctorInitials = doctor?.name
+    ? doctor.name
+        .split(" ")
+        .map((name) => name[0])
+        .join("")
+        .toUpperCase()
+    : "DR";
+
   // ================= LOADING =================
 
   if (loading) {
@@ -227,7 +211,7 @@ const Dashboard = () => {
 
         <DoctorSidebar />
 
-        <main className="ml-64">
+        <main className="lg:ml-64">
 
           <div className="h-20 bg-gradient-to-r from-teal-100 border-teal-500 px-8 flex items-center justify-between shadow-sm">
 
@@ -276,7 +260,7 @@ const Dashboard = () => {
 
       {/* ================= MAIN ================= */}
 
-      <main className="ml-64">
+      <main className="lg:ml-64">
 
         {/* ================= HEADER ================= */}
 
@@ -311,7 +295,7 @@ const Dashboard = () => {
 
               <input
                 type="text"
-                placeholder="Search patient name or appointment..."
+                placeholder="Search today's appointments..."
                 value={search}
                 onChange={(e) =>
                   setSearch(e.target.value)
@@ -320,7 +304,6 @@ const Dashboard = () => {
               />
 
             </div>
-
             <NotificationBell />
 
             <ProfileMenu />
@@ -346,20 +329,24 @@ const Dashboard = () => {
           <div className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-2xl p-6 text-white mb-8">
 
             <h2 className="text-2xl font-bold">
+
               Welcome back,{" "}
               {doctor?.name || "Doctor"} 👋
+
             </h2>
 
             <p className="mt-2 text-teal-50">
+
               Here is an overview of your patients
               and today's appointments.
+
             </p>
 
           </div>
 
           {/* ================= STATS ================= */}
 
-          <div className="grid grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
 
             {/* Total Patients */}
 
@@ -487,16 +474,14 @@ const Dashboard = () => {
 
           </div>
 
-          {/* ================= APPOINTMENTS / SEARCH RESULTS ================= */}
+          {/* ================= TODAY'S APPOINTMENTS ================= */}
 
           <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-8">
 
             <div className="flex items-center justify-between mb-6">
 
               <h2 className="text-xl font-semibold text-slate-800">
-                {search.trim()
-                  ? "Appointment Search Results"
-                  : "Today's Appointments"}
+                Today's Appointments
               </h2>
 
               <button
@@ -514,9 +499,7 @@ const Dashboard = () => {
 
               <div className="text-center py-10 text-slate-500">
 
-                {search.trim()
-                  ? `No appointments found for "${search.trim()}".`
-                  : "No appointments for today."}
+                No appointments for today.
 
               </div>
 
@@ -524,160 +507,89 @@ const Dashboard = () => {
 
               <div className="space-y-4">
 
-                {searchResults.map((appointment) => {
+                {searchResults.slice(0, 5).map(
+                  (appointment) => {
 
-                  const patientName =
-                    appointment.patientName ||
-                    appointment.patient?.name ||
-                    "Patient";
+                    const initials =
+                      appointment.patientName
+                        ?.split(" ")
+                        .map(
+                          (name) =>
+                            name[0]
+                        )
+                        .join("")
+                        .toUpperCase();
 
-                  const initials = patientName
-                    .split(" ")
-                    .map((name) => name[0])
-                    .join("")
-                    .toUpperCase();
+                    return (
 
-                  const doctorName =
-                    appointment.doctorName ||
-                    appointment.doctor?.name ||
-                    doctor?.name ||
-                    "—";
+                      <div
+                        key={appointment._id}
+                        className="flex items-center justify-between p-4 bg-slate-50 rounded-xl"
+                      >
 
-                  return (
-
-                    <div
-                      key={appointment._id}
-                      className="p-5 bg-slate-50 rounded-xl border border-slate-100"
-                    >
-
-                      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-
-                        {/* Patient Details */}
+                        {/* Patient */}
 
                         <div className="flex items-center gap-4">
 
-                          <div className="w-11 h-11 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-semibold shrink-0">
+                          <div className="w-11 h-11 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-semibold">
+
                             {initials || "PT"}
+
                           </div>
 
                           <div>
 
                             <h3 className="font-semibold text-slate-800">
-                              {patientName}
+
+                              {appointment.patientName ||
+                                "Patient"}
+
                             </h3>
 
                             <p className="text-sm text-slate-500">
+
                               {appointment.type ||
                                 "General Consultation"}
+
                             </p>
 
                           </div>
 
                         </div>
 
-                        {/* Status */}
+                        {/* Time */}
 
-                        <span
-                          className={`text-xs font-semibold px-3 py-1.5 rounded-full w-fit ${
-                            appointment.status === "Pending"
-                              ? "bg-amber-100 text-amber-700"
-                              : appointment.status === "Completed"
-                              ? "bg-blue-100 text-blue-700"
-                              : appointment.status === "Cancelled"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-green-100 text-green-700"
-                          }`}
-                        >
-                          {appointment.status ||
-                            "Status unavailable"}
-                        </span>
+                        <div className="text-right">
 
-                      </div>
+                          <p className="font-medium text-slate-700">
 
-                      {/* FULL APPOINTMENT DETAILS */}
+                            {appointment.time}
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-5 pt-4 border-t border-slate-200">
-
-                        <div>
-                          <p className="text-xs text-slate-400 mb-1">
-                            Date
                           </p>
 
-                          <p className="text-sm font-medium text-slate-700">
-                            {appointment.date || "—"}
-                          </p>
-                        </div>
+                          <span
+                            className={`text-xs ${
+                              appointment.status ===
+                              "Pending"
+                                ? "text-amber-600"
+                                : appointment.status ===
+                                  "Completed"
+                                ? "text-blue-600"
+                                : "text-green-600"
+                            }`}
+                          >
 
-                        <div>
-                          <p className="text-xs text-slate-400 mb-1">
-                            Time
-                          </p>
+                            {appointment.status}
 
-                          <p className="text-sm font-medium text-slate-700">
-                            {appointment.time || "—"}
-                          </p>
-                        </div>
-
-                        <div>
-                          <p className="text-xs text-slate-400 mb-1">
-                            Doctor
-                          </p>
-
-                          <p className="text-sm font-medium text-slate-700">
-                            {doctorName}
-                          </p>
-                        </div>
-
-                        <div>
-                          <p className="text-xs text-slate-400 mb-1">
-                            Specialization
-                          </p>
-
-                          <p className="text-sm font-medium text-slate-700">
-                            {appointment.specialization || "—"}
-                          </p>
-                        </div>
-
-                        <div>
-                          <p className="text-xs text-slate-400 mb-1">
-                            Appointment Type
-                          </p>
-
-                          <p className="text-sm font-medium text-slate-700">
-                            {appointment.type ||
-                              "General Consultation"}
-                          </p>
-                        </div>
-
-                        <div>
-                          <p className="text-xs text-slate-400 mb-1">
-                            Location
-                          </p>
-
-                          <p className="text-sm font-medium text-slate-700">
-                            {appointment.location || "—"}
-                          </p>
-                        </div>
-
-                        <div className="sm:col-span-2 lg:col-span-3">
-
-                          <p className="text-xs text-slate-400 mb-1">
-                            Reason for Visit
-                          </p>
-
-                          <p className="text-sm text-slate-700">
-                            {appointment.reason ||
-                              "No reason provided."}
-                          </p>
+                          </span>
 
                         </div>
 
                       </div>
 
-                    </div>
-
-                  );
-                })}
+                    );
+                  }
+                )}
 
               </div>
 
@@ -687,7 +599,7 @@ const Dashboard = () => {
 
           {/* ================= BOTTOM SECTIONS ================= */}
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
             {/* ================= RECENT PATIENTS ================= */}
 
@@ -716,46 +628,48 @@ const Dashboard = () => {
 
                 <div className="space-y-4">
 
-                  {recentPatients.map((patient) => (
+                  {recentPatients.map(
+                    (patient) => (
 
-                    <div
-                      key={patient._id}
-                      className="flex justify-between items-center"
-                    >
+                      <div
+                        key={patient._id}
+                        className="flex justify-between items-center"
+                      >
 
-                      <div>
+                        <div>
 
-                        <p className="font-medium text-slate-800">
-                          {patient.name}
-                        </p>
+                          <p className="font-medium text-slate-800">
+                            {patient.name}
+                          </p>
 
-                        <p className="text-sm text-slate-500">
-                          {patient.condition ||
-                            "No condition recorded"}
+                          <p className="text-sm text-slate-500">
+                            {patient.condition ||
+                              "No condition recorded"}
+                          </p>
+
+                        </div>
+
+                        <p className="text-sm text-slate-400">
+
+                          {patient.updatedAt
+                            ? new Date(
+                                patient.updatedAt
+                              ).toLocaleDateString(
+                                "en-GB",
+                                {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                }
+                              )
+                            : "-"}
+
                         </p>
 
                       </div>
 
-                      <p className="text-sm text-slate-400">
-
-                        {patient.updatedAt
-                          ? new Date(
-                              patient.updatedAt
-                            ).toLocaleDateString(
-                              "en-GB",
-                              {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              }
-                            )
-                          : "-"}
-
-                      </p>
-
-                    </div>
-
-                  ))}
+                    )
+                  )}
 
                 </div>
 
@@ -790,48 +704,50 @@ const Dashboard = () => {
 
                 <div className="space-y-4">
 
-                  {recentReports.map((report) => (
+                  {recentReports.map(
+                    (report) => (
 
-                    <div
-                      key={report._id}
-                      className="flex justify-between items-center"
-                    >
+                      <div
+                        key={report._id}
+                        className="flex justify-between items-center"
+                      >
 
-                      <div>
+                        <div>
 
-                        <p className="font-medium text-slate-800">
-                          {report.name}
-                        </p>
+                          <p className="font-medium text-slate-800">
+                            {report.name}
+                          </p>
 
-                        <p className="text-sm text-slate-500">
-                          {report.patientName ||
-                            report.patient?.name ||
-                            "Patient"}
+                          <p className="text-sm text-slate-500">
+                            {report.patientName ||
+                              report.patient?.name ||
+                              "Patient"}
+                          </p>
+
+                        </div>
+
+                        <p className="text-sm text-slate-400">
+
+                          {report.date ||
+                            (report.createdAt
+                              ? new Date(
+                                  report.createdAt
+                                ).toLocaleDateString(
+                                  "en-GB",
+                                  {
+                                    day: "2-digit",
+                                    month: "short",
+                                    year: "numeric",
+                                  }
+                                )
+                              : "-")}
+
                         </p>
 
                       </div>
 
-                      <p className="text-sm text-slate-400">
-
-                        {report.date ||
-                          (report.createdAt
-                            ? new Date(
-                                report.createdAt
-                              ).toLocaleDateString(
-                                "en-GB",
-                                {
-                                  day: "2-digit",
-                                  month: "short",
-                                  year: "numeric",
-                                }
-                              )
-                            : "-")}
-
-                      </p>
-
-                    </div>
-
-                  ))}
+                    )
+                  )}
 
                 </div>
 

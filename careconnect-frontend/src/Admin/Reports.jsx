@@ -99,7 +99,7 @@ const Reports = () => {
       <AdminSidebar />
 
       {/* ================= MAIN CONTENT ================= */}
-      <main className="ml-64">
+      <main className="lg:ml-64">
 
         {/* ================= HEADER ================= */}
         <header className="h-20 bg-gradient-to-r from-white via-teal-50/60 to-slate-50 border-b border-teal-100 px-8 flex items-center justify-between shadow-sm">

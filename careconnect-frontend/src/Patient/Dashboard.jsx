@@ -336,7 +336,7 @@ const Dashboard = () => {
 
                 <div className="overflow-x-auto">
 
-                  <table className="w-full text-sm">
+                  <div className="overflow-x-auto"><table className="w-full text-sm">
 
                     <thead className="bg-slate-50">
                       <tr className="text-left text-xs font-semibold text-slate-500">
@@ -394,7 +394,7 @@ const Dashboard = () => {
 
                     </tbody>
 
-                  </table>
+                  </table></div>
 
                 </div>
 

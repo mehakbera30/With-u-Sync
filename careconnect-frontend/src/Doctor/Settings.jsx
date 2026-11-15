@@ -1,445 +1,767 @@
-import React, { useEffect, useState } from "react";
-import {
-  User,
-  Lock,
-  BellRing,
-  X,
-  Eye,
-  EyeOff,
-} from "lucide-react";
-import DoctorSidebar from "../components/DoctorSidebar";
+import React, { useState, useEffect } from "react";
+import Sidebar from "../components/Sidebar";
 import NotificationBell from "../components/NotificationBell";
-import ProfileMenu, { getAvatarUrl } from "../components/ProfileMenu";
+import ProfileMenu from "../components/ProfileMenu";
 import api, { getStoredUser } from "../services/api";
+import { displayDoctorName } from "../utils/formatters";
+import {
+  Search,
+  Plus,
+  Clock,
+  MapPin,
+  X,
+  UserRound,
+  CheckCircle2,
+  Calendar,
+} from "lucide-react";
 
-const Settings = () => {
-  const [user, setUser] = useState(null);
+const Appointments = () => {
+  const [showBooking, setShowBooking] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
+  const [user] = useState(getStoredUser());
+  const [search, setSearch] = useState(() => new URLSearchParams(window.location.search).get("search") || "");
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [specialization, setSpecialization] = useState("");
-  const [qualifications, setQualifications] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState({ street: "", city: "", state: "", zipCode: "" });
+  const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  const [pastAppointments, setPastAppointments] = useState([]);
+  const [doctors, setDoctors] = useState([]);
 
-  const [notifications, setNotifications] = useState(true);
-  const [saving, setSaving] = useState(false);
+  // Booking Form State
+  const [bookingForm, setBookingForm] = useState({
+    doctorId: "",
+    specialization: "",
+    doctorName: "",
+    date: "",
+    time: "10:30 AM",
+    reason: "",
+  });
 
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const fetchAppointments = async () => {
+    try {
+      setLoading(true);
 
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [changingPassword, setChangingPassword] = useState(false);
+      const data = await api.appointments.getAll();
+
+      if (data.success) {
+        setUpcomingAppointments(data.upcoming || []);
+        setPastAppointments(data.past || []);
+      }
+    } catch (err) {
+      console.error("Error fetching appointments:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDoctors = async () => {
+    try {
+      const data = await api.users.getDoctors();
+
+      if (data.success && data.doctors?.length > 0) {
+        setDoctors(data.doctors);
+
+        // Use data.doctors directly because setDoctors is asynchronous
+        const firstDoctor = data.doctors[0];
+
+        setBookingForm({
+          doctorId: firstDoctor._id,
+          doctorName: firstDoctor.name,
+          specialization:
+            firstDoctor.specialization || "General Physician",
+          date: "",
+          time: "10:30 AM",
+          reason: "",
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching doctors:", err);
+    }
+  };
 
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const storedUser = getStoredUser();
-
-        if (storedUser) {
-          setUser(storedUser);
-          setName(storedUser.name || "");
-          setEmail(storedUser.email || "");
-          setSpecialization(storedUser.specialization || "");
-          setQualifications(storedUser.qualifications || "");
-          setPhone(storedUser.phone || "");
-          setAddress(storedUser.address || { street: "", city: "", state: "", zipCode: "" });
-          setNotifications(storedUser.notificationsEnabled !== false);
-        }
-
-        const response = await api.auth.me();
-
-        if (response.success && response.user) {
-          setUser(response.user);
-          setName(response.user.name || "");
-          setEmail(response.user.email || "");
-          setSpecialization(response.user.specialization || "");
-          setQualifications(response.user.qualifications || "");
-          setPhone(response.user.phone || "");
-          setAddress(response.user.address || { street: "", city: "", state: "", zipCode: "" });
-          setNotifications(response.user.notificationsEnabled !== false);
-
-          localStorage.setItem(
-            "careconnect_user",
-            JSON.stringify(response.user)
-          );
-        }
-      } catch (error) {
-        console.error("Load doctor settings error:", error);
-      }
-    };
-
-    loadUser();
+    fetchAppointments();
+    fetchDoctors();
   }, []);
 
-  const getInitials = (value = "") =>
-    value
-      .split(" ")
+  const handleBookingSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!bookingForm.doctorId) {
+      alert("Please select a doctor.");
+      return;
+    }
+
+    if (!bookingForm.date) {
+      alert("Please select a date for your appointment.");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+
+      const res = await api.appointments.create({
+        doctorId: bookingForm.doctorId,
+        doctorName: bookingForm.doctorName,
+        specialization: bookingForm.specialization,
+        date: bookingForm.date,
+        time: bookingForm.time,
+        reason: bookingForm.reason,
+      });
+
+      if (res.success) {
+        setMessage("Appointment booked successfully!");
+        setShowBooking(false);
+
+        const firstDoctor = doctors[0];
+
+        setBookingForm({
+          doctorId: firstDoctor?._id || "",
+          doctorName: firstDoctor?.name || "",
+          specialization:
+            firstDoctor?.specialization || "General Physician",
+          date: "",
+          time: "10:30 AM",
+          reason: "",
+        });
+
+        fetchAppointments();
+
+        setTimeout(() => setMessage(""), 4000);
+      }
+    } catch (err) {
+      alert(err.message || "Failed to book appointment.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCancelAppointment = async (id) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to cancel this appointment?"
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const res = await api.appointments.cancel(id);
+
+      if (res.success) {
+        fetchAppointments();
+      }
+    } catch (err) {
+      alert(err.message || "Failed to cancel appointment.");
+    }
+  };
+
+  // The search box applies to BOTH upcoming and past appointments
+  const matchesSearch = (apt) => {
+    const text = search.trim().toLowerCase();
+
+    if (!text) return true;
+
+    return [
+      apt.doctorName,
+      displayDoctorName(apt.doctorName), // lets "Dr. Sarah" match too
+      apt.specialization,
+      apt.status,
+      apt.date,
+      apt.type,
+    ]
       .filter(Boolean)
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2) || "DR";
-
-  const handleSave = async () => {
-    try {
-      setSaving(true);
-
-      const response = await api.users.updateProfile({
-        name,
-        email,
-        specialization,
-        qualifications,
-        phone,
-        address,
-      });
-
-      if (response.success && response.user) {
-        setUser(response.user);
-
-        localStorage.setItem(
-          "careconnect_user",
-          JSON.stringify(response.user)
-        );
-
-        alert("Profile updated successfully.");
-      }
-    } catch (error) {
-      console.error("Profile update error:", error);
-      alert(error.message || "Failed to update profile.");
-    } finally {
-      setSaving(false);
-    }
+      .some((value) => String(value).toLowerCase().includes(text));
   };
 
-  const handleNotificationToggle = async () => {
-    const newValue = !notifications;
-
-    try {
-      setNotifications(newValue);
-
-      const response = await api.users.updateProfile({
-        notificationsEnabled: newValue,
-      });
-
-      if (response.success && response.user) {
-        setUser(response.user);
-
-        localStorage.setItem(
-          "careconnect_user",
-          JSON.stringify(response.user)
-        );
-      }
-    } catch (error) {
-      console.error("Notification update error:", error);
-      setNotifications(!newValue);
-      alert(error.message || "Failed to update notification settings.");
-    }
-  };
-
-  const openPasswordModal = () => {
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    setShowPasswordModal(true);
-  };
-
-  const closePasswordModal = () => {
-    if (changingPassword) return;
-
-    setShowPasswordModal(false);
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-  };
-
-  const handlePasswordSubmit = async (event) => {
-    event.preventDefault();
-
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      alert("Please fill all password fields.");
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      alert("New password must be at least 6 characters.");
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      alert("New password and confirm password do not match.");
-      return;
-    }
-
-    try {
-      setChangingPassword(true);
-
-      const response = await api.auth.updatePassword(
-        currentPassword,
-        newPassword
-      );
-
-      if (response.success) {
-        alert("Password changed successfully.");
-        closePasswordModal();
-      }
-    } catch (error) {
-      console.error("Password update error:", error);
-      alert(error.message || "Failed to change password.");
-    } finally {
-      setChangingPassword(false);
-    }
-  };
-
-  const doctorInitials = getInitials(user?.name);
+  const filteredUpcoming = upcomingAppointments.filter(matchesSearch);
+  const filteredPast = pastAppointments.filter(matchesSearch);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <DoctorSidebar />
+    <div className="min-h-screen bg-slate-50 flex">
 
-      <main className="ml-64">
-        <header className="h-20 bg-gradient-to-r from-teal-100 to-white border-b border-teal-100 px-8 flex items-center justify-between shadow-sm">
+      {/* Sidebar */}
+      <Sidebar />
+
+      {/* Main Content */}
+      <main className="lg:ml-64 flex-1">
+
+        {/* Navbar */}
+        <header className="h-20 bg-gradient-to-r from-teal-100 border-b border-teal-200 px-8 flex items-center justify-between shadow-sm">
+
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">
-              Settings
-            </h1>
-            <p className="text-slate-500 mt-1">
-              Manage your account and preferences.
+            <h2 className="text-2xl font-bold text-slate-800">
+              Appointments
+            </h2>
+
+            <p className="text-sm text-slate-500">
+              Manage your upcoming and past appointments.
             </p>
           </div>
 
           <div className="flex items-center gap-5">
 
+            {/* Search */}
+            <div className="relative hidden lg:block">
+
+              <Search
+                size={18}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-600"
+              />
+
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search appointments..."
+                className="w-56 bg-white border border-teal-100 rounded-lg pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-teal-200"
+              />
+
+            </div>
+
+            {/* Notification */}
             <NotificationBell />
 
             <ProfileMenu />
+
           </div>
+
         </header>
 
-        <div className="p-8 max-w-5xl">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-teal-50 rounded-xl">
-                <User className="text-teal-600" />
-              </div>
+        {/* Content Body */}
+        <div className="p-8">
 
-              <div>
-                <h2 className="text-xl font-semibold text-slate-800">
-                  Profile Information
-                </h2>
-                <p className="text-sm text-slate-500">
-                  Update your professional information.
-                </p>
-              </div>
+          {/* Success Message */}
+          {message && (
+            <div className="mb-6 p-4 bg-teal-50 border border-teal-200 text-teal-800 text-sm rounded-xl flex items-center gap-2">
+
+              <CheckCircle2
+                size={18}
+                className="text-teal-600"
+              />
+
+              {message}
+
             </div>
+          )}
 
-            <div className="grid grid-cols-2 gap-5">
-              <div>
-                <label className="block text-sm text-slate-600 mb-2">
-                  Full Name
-                </label>
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full p-3 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-teal-100"
-                />
-              </div>
+          {/* Action Header */}
+          <div className="flex items-center justify-between mb-8">
 
-              <div>
-                <label className="block text-sm text-slate-600 mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full p-3 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-teal-100"
-                />
-              </div>
+            <div>
 
-              <div>
-                <label className="block text-sm text-slate-600 mb-2">
-                  Specialization
-                </label>
-                <input
-                  value={specialization}
-                  onChange={(e) => setSpecialization(e.target.value)}
-                  className="w-full p-3 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-teal-100"
-                />
-              </div>
+              <h3 className="text-xl font-bold text-slate-800">
+                Scheduled Consultations
+              </h3>
 
-              <div>
-                <label className="block text-sm text-slate-600 mb-2">Most Recent Education</label>
-                <input value={qualifications} onChange={(e) => setQualifications(e.target.value)} placeholder="MBBS, MD, MS, etc." className="w-full p-3 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-teal-100" />
-              </div>
+              <p className="text-sm text-slate-500 mt-1">
+                Real-time booking linked with doctors' clinic schedules.
+              </p>
 
-              <div>
-                <label className="block text-sm text-slate-600 mb-2">Contact Number</label>
-                <input value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full p-3 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-teal-100" />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm text-slate-600 mb-2">Address</label>
-                <div className="grid md:grid-cols-2 gap-3">
-                  {[["street","Street / House Address"],["city","City"],["state","State"],["zipCode","PIN / ZIP Code"]].map(([key,label]) => <input key={key} value={address[key] || ""} onChange={(e) => setAddress({ ...address, [key]: e.target.value })} placeholder={label} className="w-full p-3 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-teal-100" />)}
-                </div>
-              </div>
             </div>
 
             <button
-              onClick={handleSave}
-              disabled={saving}
-              className="mt-6 bg-teal-600 hover:bg-teal-700 text-white px-5 py-3 rounded-lg disabled:opacity-60"
+              onClick={() => setShowBooking(true)}
+              className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition"
             >
-              {saving ? "Saving..." : "Save Changes"}
+              <Plus size={18} />
+              Book Appointment
             </button>
+
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="p-3 bg-teal-50 rounded-xl">
-                <Lock className="text-teal-600" />
+          {/* Upcoming Section */}
+          <section>
+
+            <h4 className="text-lg font-semibold text-slate-800 mb-4">
+              Upcoming Appointments ({filteredUpcoming.length})
+            </h4>
+
+            {loading ? (
+
+              <div className="p-12 text-center text-slate-500 bg-white rounded-2xl border border-slate-200">
+                Loading appointments...
               </div>
 
-              <div>
-                <h2 className="text-xl font-semibold text-slate-800">
-                  Security
-                </h2>
-                <p className="text-sm text-slate-500">
-                  Manage your account security.
-                </p>
-              </div>
-            </div>
+            ) : filteredUpcoming.length === 0 ? (
 
-            <button
-              onClick={openPasswordModal}
-              className="border border-slate-300 hover:bg-slate-50 px-5 py-3 rounded-lg text-slate-700"
-            >
-              Change Password
-            </button>
-          </div>
+              <div className="p-12 text-center text-slate-500 bg-white rounded-2xl border border-slate-200">
 
-          <div className="bg-white rounded-2xl border border-slate-200 p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-teal-50 rounded-xl">
-                  <BellRing className="text-teal-600" />
-                </div>
-
-                <div>
-                  <h2 className="text-xl font-semibold text-slate-800">
-                    Notifications
-                  </h2>
-                  <p className="text-sm text-slate-500">
-                    Receive appointment and patient updates.
-                  </p>
-                  <p className="text-xs text-teal-600 mt-1">
-                    {notifications
-                      ? "Notifications are enabled."
-                      : "Notifications are turned off."}
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleNotificationToggle}
-                className={`relative w-12 h-6 rounded-full transition ${
-                  notifications ? "bg-teal-600" : "bg-slate-300"
-                }`}
-              >
-                <span
-                  className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition ${
-                    notifications ? "left-7" : "left-1"
-                  }`}
+                <Calendar
+                  size={36}
+                  className="mx-auto mb-3 text-slate-300"
                 />
-              </button>
-            </div>
-          </div>
+
+                <p className="font-medium text-slate-700">
+                  {search.trim()
+                    ? "No upcoming appointments match your search"
+                    : "No upcoming appointments"}
+                </p>
+
+                <p className="text-sm text-slate-400 mt-1">
+                  {search.trim()
+                    ? "Try a different doctor name or specialization."
+                    : 'Click the "Book Appointment" button above to schedule a visit with our doctors.'}
+                </p>
+
+              </div>
+
+            ) : (
+
+              <div className="space-y-4">
+
+                {filteredUpcoming.map((appointment) => (
+
+                  <div
+                    key={appointment._id}
+                    className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition"
+                  >
+
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+
+                      {/* Left Info */}
+                      <div className="flex items-start gap-4">
+
+                        <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600 shrink-0">
+                          <UserRound size={26} />
+                        </div>
+
+                        <div>
+
+                          <div className="flex items-center gap-3">
+
+                            <h5 className="font-bold text-slate-800 text-lg">
+                              {appointment.doctorName || "Assigned Doctor"}
+                            </h5>
+
+                            <span
+                              className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
+                                appointment.status === "Confirmed"
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-amber-100 text-amber-700"
+                              }`}
+                            >
+                              {appointment.status}
+                            </span>
+
+                          </div>
+
+                          <p className="text-sm text-teal-600 font-medium mt-0.5">
+                            {appointment.specialization} •{" "}
+                            {appointment.type || "Consultation"}
+                          </p>
+
+                          {appointment.reason && (
+                            <p className="text-xs text-slate-500 mt-1">
+                              Reason: {appointment.reason}
+                            </p>
+                          )}
+
+                        </div>
+
+                      </div>
+
+                      {/* Middle Details */}
+                      <div className="flex flex-wrap items-center gap-5 text-sm text-slate-600 border-t lg:border-t-0 pt-3 lg:pt-0">
+
+                        <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+
+                          <Clock
+                            size={16}
+                            className="text-teal-600"
+                          />
+
+                          <span>
+                            {appointment.date} at {appointment.time}
+                          </span>
+
+                        </div>
+
+                        <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+
+                          <MapPin
+                            size={16}
+                            className="text-teal-600"
+                          />
+
+                          <span>
+                            {appointment.location ||
+                              "WithUSync Clinic"}
+                          </span>
+
+                        </div>
+
+                      </div>
+
+                      {/* Right Action */}
+                      <div className="flex items-center gap-3">
+
+                        <button
+                          onClick={() =>
+                            handleCancelAppointment(
+                              appointment._id
+                            )
+                          }
+                          className="px-4 py-2 border border-red-200 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition"
+                        >
+                          Cancel
+                        </button>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                ))}
+
+              </div>
+
+            )}
+
+          </section>
+
+          {/* Past Appointments Section */}
+          <section className="mt-10">
+
+            <h4 className="text-lg font-semibold text-slate-800 mb-4">
+              Past Appointments ({filteredPast.length})
+            </h4>
+
+            {filteredPast.length === 0 ? (
+
+              <div className="bg-white border border-slate-200 rounded-xl p-8 text-center text-slate-500 text-sm">
+                {search.trim()
+                  ? "No past appointments match your search."
+                  : "No past consultations recorded."}
+              </div>
+
+            ) : (
+
+              <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm divide-y divide-slate-100">
+
+                {filteredPast.map((appointment) => (
+
+                  <div
+                    key={appointment._id}
+                    className="flex items-center justify-between px-6 py-4"
+                  >
+
+                    <div className="flex items-center gap-4">
+
+                      <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                        <UserRound size={20} />
+                      </div>
+
+                      <div>
+
+                        <p className="font-semibold text-slate-800">
+                          {appointment.doctorName}
+                        </p>
+
+                        <p className="text-xs text-slate-500">
+                          {appointment.date} •{" "}
+                          {appointment.specialization}
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm font-medium text-slate-600">
+
+                      <span
+                        className={`w-2 h-2 rounded-full ${
+                          appointment.status === "Completed"
+                            ? "bg-green-500"
+                            : "bg-slate-400"
+                        }`}
+                      ></span>
+
+                      {appointment.status}
+
+                    </div>
+
+                  </div>
+
+                ))}
+
+              </div>
+
+            )}
+
+          </section>
+
         </div>
+
       </main>
 
-      {showPasswordModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center px-4">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl">
-            <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
+      {/* Booking Modal */}
+      {showBooking && (
+
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
+
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-slate-200">
+
               <div>
+
                 <h3 className="text-xl font-bold text-slate-800">
-                  Change Password
+                  Book Appointment
                 </h3>
-                <p className="text-sm text-slate-500 mt-1">
-                  Enter your current password and choose a new one.
+
+                <p className="text-sm text-slate-500 mt-0.5">
+                  Schedule a consultation with your doctor.
                 </p>
+
               </div>
 
               <button
-                type="button"
-                onClick={closePasswordModal}
-                className="w-9 h-9 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400"
+                onClick={() => setShowBooking(false)}
+                className="text-slate-400 hover:text-slate-700"
               >
-                <X size={20} />
+                <X size={22} />
               </button>
+
             </div>
 
-            <form onSubmit={handlePasswordSubmit} className="p-6 space-y-5">
-              {[
-                ["Current Password", currentPassword, setCurrentPassword, showCurrentPassword, setShowCurrentPassword],
-                ["New Password", newPassword, setNewPassword, showNewPassword, setShowNewPassword],
-                ["Confirm New Password", confirmPassword, setConfirmPassword, showConfirmPassword, setShowConfirmPassword],
-              ].map(([label, value, setter, visible, setVisible]) => (
-                <div key={label}>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    {label}
-                  </label>
+            {/* Booking Form */}
+            <form
+              onSubmit={handleBookingSubmit}
+              className="p-6 space-y-4"
+            >
 
-                  <div className="relative">
-                    <input
-                      type={visible ? "text" : "password"}
-                      value={value}
-                      onChange={(e) => setter(e.target.value)}
-                      className="w-full border border-slate-300 rounded-lg px-4 py-3 pr-11 outline-none focus:ring-2 focus:ring-teal-500"
-                      required
-                    />
+              {/* Specialization */}
+              <div>
 
-                    <button
-                      type="button"
-                      onClick={() => setVisible(!visible)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
-                    >
-                      {visible ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
-              ))}
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Specialization
+                </label>
 
-              <div className="flex justify-end gap-3 pt-2">
+                <select
+                  value={bookingForm.specialization}
+                  onChange={(e) => {
+
+                    const spec = e.target.value;
+
+                    const matchingDoc = doctors.find(
+                      (doc) =>
+                        doc.specialization === spec
+                    );
+
+                    setBookingForm({
+                      ...bookingForm,
+                      specialization: spec,
+                      doctorId: matchingDoc?._id || "",
+                      doctorName: matchingDoc?.name || "",
+                    });
+
+                  }}
+                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+                >
+
+                  <option value="Cardiology">
+                    Cardiology
+                  </option>
+
+                  <option value="General Physician">
+                    General Physician
+                  </option>
+
+                  <option value="Dermatology">
+                    Dermatology
+                  </option>
+
+                  <option value="Neurology">
+                    Neurology
+                  </option>
+
+                </select>
+
+              </div>
+
+              {/* Doctor */}
+              <div>
+
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Select Doctor
+                </label>
+
+                <select
+                  value={bookingForm.doctorId}
+                  onChange={(e) => {
+
+                    const selectedDoctor = doctors.find(
+                      (doc) =>
+                        doc._id === e.target.value
+                    );
+
+                    if (selectedDoctor) {
+
+                      setBookingForm({
+                        ...bookingForm,
+                        doctorId: selectedDoctor._id,
+                        doctorName: selectedDoctor.name,
+                        specialization:
+                          selectedDoctor.specialization ||
+                          "General Physician",
+                      });
+
+                    }
+
+                  }}
+                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+                >
+
+                  {doctors.length > 0 ? (
+
+                    doctors.map((doc) => (
+
+                      <option
+                        key={doc._id}
+                        value={doc._id}
+                      >
+                        {doc.name} (
+                        {doc.specialization || "Doctor"})
+                      </option>
+
+                    ))
+
+                  ) : (
+
+                    <option value="">
+                      No doctors available
+                    </option>
+
+                  )}
+
+                </select>
+
+              </div>
+
+              {/* Date */}
+              <div>
+
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Appointment Date
+                </label>
+
+                <input
+                  type="date"
+                  required
+                  value={bookingForm.date}
+                  onChange={(e) =>
+                    setBookingForm({
+                      ...bookingForm,
+                      date: e.target.value,
+                    })
+                  }
+                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+                />
+
+              </div>
+
+              {/* Time */}
+              <div>
+
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Select Time Slot
+                </label>
+
+                <select
+                  value={bookingForm.time}
+                  onChange={(e) =>
+                    setBookingForm({
+                      ...bookingForm,
+                      time: e.target.value,
+                    })
+                  }
+                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+                >
+
+                  <option value="09:30 AM">
+                    09:30 AM
+                  </option>
+
+                  <option value="10:30 AM">
+                    10:30 AM
+                  </option>
+
+                  <option value="11:30 AM">
+                    11:30 AM
+                  </option>
+
+                  <option value="02:00 PM">
+                    02:00 PM
+                  </option>
+
+                  <option value="04:00 PM">
+                    04:00 PM
+                  </option>
+
+                </select>
+
+              </div>
+
+              {/* Reason */}
+              <div>
+
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Reason for Visit
+                </label>
+
+                <textarea
+                  rows="3"
+                  value={bookingForm.reason}
+                  onChange={(e) =>
+                    setBookingForm({
+                      ...bookingForm,
+                      reason: e.target.value,
+                    })
+                  }
+                  placeholder="Describe symptoms or reason for consultation..."
+                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5 outline-none resize-none focus:ring-2 focus:ring-teal-500 text-sm"
+                ></textarea>
+
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+
                 <button
                   type="button"
-                  onClick={closePasswordModal}
-                  disabled={changingPassword}
-                  className="px-5 py-2.5 border border-slate-300 rounded-lg text-sm font-medium text-slate-700"
+                  onClick={() => setShowBooking(false)}
+                  className="px-5 py-2.5 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50"
                 >
                   Cancel
                 </button>
 
                 <button
                   type="submit"
-                  disabled={changingPassword}
-                  className="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-medium disabled:opacity-60"
+                  disabled={
+                    submitting || !bookingForm.doctorId
+                  }
+                  className="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-60"
                 >
-                  {changingPassword ? "Updating..." : "Update Password"}
+                  {submitting
+                    ? "Booking..."
+                    : "Confirm Booking"}
                 </button>
+
               </div>
+
             </form>
+
           </div>
+
         </div>
+
       )}
+
     </div>
   );
 };
 
-export default Settings;
+export default Appointments;

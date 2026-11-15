@@ -159,7 +159,7 @@ const Calendar = () => {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
       <Sidebar />
 
-      <main className="ml-64 flex-1 min-w-0">
+      <main className="lg:ml-64 flex-1 min-w-0">
         <header className="h-20 bg-gradient-to-r from-white via-teal-50/60 to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 border-b border-teal-100 dark:border-slate-800 px-8 flex items-center justify-between shadow-sm">
           <div>
             <h2 className="text-2xl font-bold text-slate-800 dark:text-white">

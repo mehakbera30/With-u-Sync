@@ -286,7 +286,7 @@ const Reports = () => {
 
       <Sidebar />
 
-      <main className="ml-64 flex-1">
+      <main className="lg:ml-64 flex-1">
 
         {/* ================================================= */}
         {/* NAVBAR */}

@@ -253,7 +253,7 @@ const Reports = () => {
     <div className="min-h-screen bg-slate-50">
       <DoctorSidebar />
 
-      <main className="ml-64">
+      <main className="lg:ml-64">
 
         {/* ================================================= */}
         {/* HEADER */}
@@ -305,7 +305,7 @@ const Reports = () => {
 
           {/* SUMMARY CARDS */}
 
-          <div className="grid grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 
             <div className="bg-white p-6 rounded-2xl border border-slate-200">
 
@@ -691,7 +691,7 @@ const Reports = () => {
 
             <div className="p-6 space-y-5">
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                 <div className="bg-slate-50 rounded-lg p-4">
 

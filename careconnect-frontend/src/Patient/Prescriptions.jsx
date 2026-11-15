@@ -141,7 +141,7 @@ const Prescriptions = () => {
 
       {/* ================= MAIN CONTENT ================= */}
 
-      <main className="ml-64 flex-1">
+      <main className="lg:ml-64 flex-1">
 
         {/* ================= HEADER ================= */}
 

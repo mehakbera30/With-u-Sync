@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
+  Menu,
+  X,
   LayoutDashboard,
   CalendarDays,
   FileText,
@@ -10,8 +12,47 @@ import {
 } from "lucide-react";
 
 const Sidebar = () => {
+  const [open, setOpen] = useState(false);
+
   return (
-    <aside className="w-64 bg-slate-900 text-white fixed left-0 top-0 h-screen flex flex-col">
+    <>
+      {/* Mobile menu button */}
+      <button
+        type="button"
+        aria-label="Open menu"
+        onClick={() => setOpen(true)}
+        className="lg:hidden fixed top-5 left-3 z-40 w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center shadow-md"
+      >
+        <Menu size={22} />
+      </button>
+
+      {/* Dark backdrop behind the open drawer (mobile only) */}
+      {open && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-slate-900/50"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+    <aside
+      onClick={(e) => {
+        // close the drawer after tapping a link
+        if (e.target.closest("a")) setOpen(false);
+      }}
+      className={`w-64 bg-slate-900 text-white fixed left-0 top-0 h-screen flex flex-col z-50 overflow-y-auto transition-transform duration-200 ${
+        open ? "translate-x-0" : "-translate-x-full"
+      } lg:translate-x-0`}
+    >
+
+      <button
+        type="button"
+        aria-label="Close menu"
+        onClick={() => setOpen(false)}
+        className="lg:hidden absolute top-4 right-3 w-9 h-9 rounded-lg text-slate-300 hover:bg-slate-800 flex items-center justify-center"
+      >
+        <X size={20} />
+      </button>
+
 
       <div className="px-6 py-6 flex items-center gap-3 border-b border-slate-800">
         <div className="w-11 h-11 rounded-xl overflow-hidden bg-white flex items-center justify-center border border-teal-200 shadow-sm">
@@ -131,6 +172,7 @@ const Sidebar = () => {
       </div>
 
     </aside>
+    </>
   );
 };
 

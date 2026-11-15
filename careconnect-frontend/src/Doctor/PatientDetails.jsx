@@ -685,7 +685,7 @@ const PatientDetails = () => {
 
         <DoctorSidebar />
 
-        <main className="flex-1 ml-64 p-8">
+        <main className="flex-1 lg:ml-64 p-8">
 
           <div className="flex items-center justify-center min-h-[70vh]">
 
@@ -718,7 +718,7 @@ const PatientDetails = () => {
 
         <DoctorSidebar />
 
-        <main className="flex-1 ml-64 p-8">
+        <main className="flex-1 lg:ml-64 p-8">
 
           <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
 
@@ -767,7 +767,7 @@ const PatientDetails = () => {
           MAIN CONTENT
       ================================================== */}
 
-      <main className="flex-1 ml-64">
+      <main className="flex-1 lg:ml-64">
 
         {/* ==================================================
             TOP HEADER

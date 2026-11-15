@@ -185,7 +185,7 @@ const Settings = () => {
     <div className="min-h-screen bg-slate-50 flex">
       <Sidebar />
 
-      <main className="ml-64 flex-1">
+      <main className="lg:ml-64 flex-1">
         <header className="h-20 bg-gradient-to-r from-teal-100 to-white border-b border-teal-100 px-8 flex items-center justify-between shadow-sm">
           <div>
             <h2 className="text-2xl font-bold text-slate-800">
@@ -222,7 +222,7 @@ const Settings = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
                 <label className="text-sm text-slate-600">
                   Full Name

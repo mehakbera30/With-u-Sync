@@ -238,7 +238,7 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-slate-50">
       <AdminSidebar />
 
-      <main className="ml-64">
+      <main className="lg:ml-64">
         <header className="h-20 bg-gradient-to-r from-teal-100 to-white border-b border-teal-100 px-8 flex items-center justify-between shadow-sm">
           <div>
             <h1 className="text-2xl font-bold text-slate-800">
@@ -298,7 +298,7 @@ const AdminDashboard = () => {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-5 gap-5 mb-8">
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-5 mb-8">
                 <StatCard
                   label="Doctors"
                   value={stats.doctors || 0}
@@ -353,7 +353,7 @@ const AdminDashboard = () => {
               </div>
 
               {activeTab === "overview" && (
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                   <div className="bg-white rounded-2xl border border-slate-200 p-6">
                     <div className="flex items-center justify-between mb-5">
                       <div>
@@ -560,7 +560,7 @@ const AdminDashboard = () => {
                   </div>
 
                   <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <div className="overflow-x-auto"><table className="w-full">
                       <thead className="bg-slate-50">
                         <tr>
                           <th className="text-left px-6 py-4 text-sm text-slate-500">
@@ -606,7 +606,7 @@ const AdminDashboard = () => {
                           </tr>
                         ))}
                       </tbody>
-                    </table>
+                    </table></div>
                   </div>
                 </section>
               )}
@@ -692,7 +692,7 @@ const AdminDashboard = () => {
 
             <form
               onSubmit={handleCreatePatient}
-              className="p-6 grid grid-cols-2 gap-5"
+              className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5"
             >
               <Field
                 label="Full Name"
@@ -856,7 +856,7 @@ const PatientAssignment = ({ patient, doctors, onAssign }) => (
 
 const PatientTable = ({ patients, doctors, onAssign }) => (
   <div className="overflow-x-auto">
-    <table className="w-full">
+    <div className="overflow-x-auto"><table className="w-full">
       <thead className="bg-slate-50">
         <tr>
           <th className="text-left px-6 py-4 text-sm text-slate-500">
@@ -917,7 +917,7 @@ const PatientTable = ({ patients, doctors, onAssign }) => (
           ))
         )}
       </tbody>
-    </table>
+    </table></div>
   </div>
 );
 

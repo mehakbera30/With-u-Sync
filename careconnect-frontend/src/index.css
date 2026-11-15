@@ -125,3 +125,74 @@ body {
     padding: 1rem;
   }
 }
+
+
+/* ---------- Mobile fixes (round 2) ---------- */
+
+/* The page wrapper is a flex row, so without this the main column grows to fit
+   its widest child instead of shrinking to the screen. */
+main {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (max-width: 639px) {
+  /* Header grows with its content and never clips the title */
+  main > header {
+    height: auto;
+    min-height: 5rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  /* Hide the long subtitle under the page title (it wrapped to 4 lines) */
+  main > header > div:first-child p {
+    display: none;
+  }
+
+  /* Rows that put things side by side wrap instead of running off-screen */
+  main .flex.justify-between:not(header):not(.flex-col) {
+    flex-wrap: wrap;
+    row-gap: 0.75rem;
+  }
+
+  /* Long names and text wrap inside their box */
+  main h2,
+  main h3,
+  main h4,
+  main p {
+    overflow-wrap: anywhere;
+  }
+}
+
+
+/* ---------- Device hardening (phones, tablets, foldables) ---------- */
+
+/* Mobile browsers have a toolbar that makes 100vh taller than what is visible.
+   dvh follows the real visible height, so the sidebar's Logout button stays reachable. */
+aside.fixed {
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* iPhone and iPad Safari zoom the whole page when you tap an input smaller than
+   16px, which looks like the layout collapsing. Keep touch inputs at 16px. */
+@media (hover: none) and (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Pop-up forms taller than the screen (phones held sideways, small phones)
+   scroll instead of being cut off. Auto margins keep short pop-ups centered. */
+.fixed.inset-0.flex {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-block: 1rem;
+}
+
+.fixed.inset-0.flex > * {
+  margin-block: auto;
+}

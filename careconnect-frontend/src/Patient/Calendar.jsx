@@ -236,7 +236,7 @@ const Calendar = () => {
                 (day) => (
                   <div
                     key={day}
-                    className="p-3 sm:p-4 text-center text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400"
+                    className="p-1.5 sm:p-4 text-center text-[11px] sm:text-sm font-semibold text-slate-500 dark:text-slate-400"
                   >
                     {day}
                   </div>
@@ -274,14 +274,14 @@ const Calendar = () => {
                   return (
                     <div
                       key={date.toISOString()}
-                      className={`min-h-28 sm:min-h-32 border-r border-b border-slate-200 dark:border-slate-800 p-2 sm:p-3 ${
+                      className={`min-h-16 sm:min-h-32 min-w-0 border-r border-b border-slate-200 dark:border-slate-800 p-1 sm:p-3 ${
                         outsideMonth
                           ? "bg-slate-50/70 dark:bg-slate-950/40 text-slate-300"
                           : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200"
                       }`}
                     >
                       <div
-                        className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-medium ${
+                        className={`w-7 h-7 sm:w-8 sm:h-8 mx-auto sm:mx-0 flex items-center justify-center rounded-full text-xs sm:text-sm font-medium ${
                           hasUpcoming
                             ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300"
                             : hasPast
@@ -294,7 +294,21 @@ const Calendar = () => {
                         {date.getDate()}
                       </div>
 
-                      <div className="mt-2 space-y-1.5">
+                      {/* Phones: small dots instead of text chips (7 columns are too narrow for text) */}
+                      <div className="sm:hidden mt-1 flex flex-wrap justify-center gap-1">
+                        {dayAppointments.slice(0, 3).map((appointment) => (
+                          <span
+                            key={appointment._id}
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              getAppointmentState(appointment) === "past"
+                                ? "bg-red-500"
+                                : "bg-emerald-500"
+                            }`}
+                          />
+                        ))}
+                      </div>
+
+                      <div className="hidden sm:block mt-2 space-y-1.5">
                         {dayAppointments.slice(0, 2).map((appointment) => {
                           const state = getAppointmentState(appointment);
                           const isPast = state === "past";

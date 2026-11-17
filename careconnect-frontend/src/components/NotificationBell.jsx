@@ -88,7 +88,7 @@ const NotificationBell = () => {
   };
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2 sm:gap-3">
       <ThemeToggle />
 
       <div className="relative" ref={ref}>
@@ -107,8 +107,8 @@ const NotificationBell = () => {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-14 w-96 max-w-[calc(100vw-1rem)] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+        <div className="fixed sm:absolute right-2 sm:right-0 top-[4.5rem] sm:top-14 w-[calc(100vw-1rem)] sm:w-96 max-w-96 max-h-[min(75vh,32rem)] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-[100] overflow-hidden">
+          <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-slate-800 dark:text-white">
                 Notifications
@@ -122,12 +122,12 @@ const NotificationBell = () => {
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               {unreadCount > 0 && (
                 <button
                   type="button"
                   onClick={markAllRead}
-                  className="text-xs text-teal-600 hover:text-teal-700 flex items-center gap-1"
+                  className="text-[10px] sm:text-xs text-teal-600 hover:text-teal-700 flex items-center gap-1 whitespace-nowrap"
                 >
                   <CheckCheck size={14} />
                   Mark all read
@@ -144,7 +144,7 @@ const NotificationBell = () => {
             </div>
           </div>
 
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-[calc(min(75vh,32rem)-5rem)] overflow-y-auto overscroll-contain">
             {!enabled ? (
               <div className="p-8 text-center text-sm text-slate-500 dark:text-slate-400">
                 Turn notifications on from Settings to receive new updates.

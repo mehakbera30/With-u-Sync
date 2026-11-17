@@ -30,7 +30,7 @@ const Register = () => {
       setFieldErrors((prev) => ({ ...prev, phone: "Phone number must contain exactly 10 digits." }));
       return "Phone number must contain exactly 10 digits.";
     }
-    if (password.length < 6) return "Password must be at least 6 characters.";
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password)) return "Use at least 8 characters with uppercase, lowercase, number and special character.";
     if (password !== confirmPassword) return "Passwords do not match.";
     return "";
   };
@@ -225,9 +225,9 @@ const Register = () => {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Minimum 6 characters"
+                    placeholder="Strong password"
                     autoComplete="new-password"
-                    minLength={6}
+                    minLength={8}
                     className="w-full px-4 py-3.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100 transition"
                     required
                   />
@@ -241,7 +241,7 @@ const Register = () => {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Re-enter password"
                     autoComplete="new-password"
-                    minLength={6}
+                    minLength={8}
                     className="w-full px-4 py-3.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100 transition"
                     required
                   />

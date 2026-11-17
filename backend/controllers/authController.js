@@ -6,6 +6,13 @@ const generateToken = require("../utils/generateToken");
 const EMAIL_REGEX = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
 const PHONE_REGEX = /^\d{10}$/;
 
+const isStrongPassword = (password) =>
+  typeof password === "string" &&
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password);
+
+const PASSWORD_MESSAGE =
+  "Password must be at least 8 characters and include uppercase, lowercase, a number and a special character.";
+
 const register = async (req, res, next) => {
   try {
     const {
@@ -44,8 +51,8 @@ const register = async (req, res, next) => {
       return res.status(400).json({ success: false, message: "Please provide a valid email address" });
     }
 
-    if (String(password).length < 6) {
-      return res.status(400).json({ success: false, message: "Password must be at least 6 characters" });
+    if (!isStrongPassword(password)) {
+      return res.status(400).json({ success: false, message: PASSWORD_MESSAGE });
     }
 
     if (!PHONE_REGEX.test(cleanPhone)) {
@@ -177,8 +184,8 @@ const updatePassword = async (req, res, next) => {
       return res.status(400).json({ success: false, message: "Please provide both current and new password" });
     }
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({ success: false, message: "New password must be at least 6 characters" });
+    if (!isStrongPassword(newPassword)) {
+      return res.status(400).json({ success: false, message: PASSWORD_MESSAGE });
     }
 
     const user = await User.findById(req.user._id).select("+password");
@@ -256,11 +263,8 @@ const resetPassword = async (req, res, next) => {
   try {
     const { newPassword } = req.body;
 
-    if (!newPassword || String(newPassword).length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: "New password must be at least 6 characters",
-      });
+    if (!isStrongPassword(newPassword)) {
+      return res.status(400).json({ success: false, message: PASSWORD_MESSAGE });
     }
 
     const hashed = crypto.createHash("sha256").update(req.params.token).digest("hex");

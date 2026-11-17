@@ -94,10 +94,10 @@ const PublicNavbar = () => {
 
           {user ? (
             <Link
-              to={dashboardFor(user.role)}
+              to="/register"
               className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold transition whitespace-nowrap"
             >
-              Dashboard
+              Register
             </Link>
           ) : (
             <>

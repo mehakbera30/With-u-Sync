@@ -1,36 +1,39 @@
-import React from "react";
+import React, { Suspense, lazy, useEffect } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { getStoredToken, getStoredUser } from "../services/api";
 
+// ================= PUBLIC =================
+import Home from "../Pages/Home";
+
 // ================= AUTH =================
-import Login from "../Pages/Auth/Login";
-import Register from "../Pages/Auth/Register";
-import ResetPassword from "../Pages/Auth/ResetPassword";
+const Login = lazy(() => import("../Pages/Auth/Login"));
+const Register = lazy(() => import("../Pages/Auth/Register"));
+const ResetPassword = lazy(() => import("../Pages/Auth/ResetPassword"));
 
 // ================= PATIENT =================
-import PatientDashboard from "../Patient/Dashboard";
-import PatientAppointments from "../Patient/Appointments";
-import PatientCalendar from "../Patient/Calendar";
-import PatientReports from "../Patient/Reports";
-import PatientPrescriptions from "../Patient/Prescriptions";
-import PatientProfile from "../Patient/Profile";
-import PatientSettings from "../Patient/Settings";
+const PatientDashboard = lazy(() => import("../Patient/Dashboard"));
+const PatientAppointments = lazy(() => import("../Patient/Appointments"));
+const PatientCalendar = lazy(() => import("../Patient/Calendar"));
+const PatientReports = lazy(() => import("../Patient/Reports"));
+const PatientPrescriptions = lazy(() => import("../Patient/Prescriptions"));
+const PatientProfile = lazy(() => import("../Patient/Profile"));
+const PatientSettings = lazy(() => import("../Patient/Settings"));
 
 // ================= DOCTOR =================
-import DoctorDashboard from "../Doctor/Dashboard";
-import DoctorAppointments from "../Doctor/Appointments";
-import DoctorPatients from "../Doctor/Patients";
-import PatientDetails from "../Doctor/PatientDetails";
-import DoctorReports from "../Doctor/Reports";
-import DoctorSettings from "../Doctor/Settings";
+const DoctorDashboard = lazy(() => import("../Doctor/Dashboard"));
+const DoctorAppointments = lazy(() => import("../Doctor/Appointments"));
+const DoctorPatients = lazy(() => import("../Doctor/Patients"));
+const PatientDetails = lazy(() => import("../Doctor/PatientDetails"));
+const DoctorReports = lazy(() => import("../Doctor/Reports"));
+const DoctorSettings = lazy(() => import("../Doctor/Settings"));
 
 // ================= ADMIN =================
-import AdminDashboard from "../Admin/Dashboard";
-import AdminDoctors from "../Admin/Doctors";
-import AdminPatients from "../Admin/Patients";
-import AdminAppointments from "../Admin/Appointments";
-import AdminReports from "../Admin/Reports";
-import AdminSettings from "../Admin/Settings";
+const AdminDashboard = lazy(() => import("../Admin/Dashboard"));
+const AdminDoctors = lazy(() => import("../Admin/Doctors"));
+const AdminPatients = lazy(() => import("../Admin/Patients"));
+const AdminAppointments = lazy(() => import("../Admin/Appointments"));
+const AdminReports = lazy(() => import("../Admin/Reports"));
+const AdminSettings = lazy(() => import("../Admin/Settings"));
 
 
 const ProtectedRoute = ({ roles, children }) => {
@@ -56,16 +59,40 @@ const ProtectedRoute = ({ roles, children }) => {
   return children;
 };
 
+// Jump back to the top of the page whenever the route changes
+const ScrollToTop = () => {
+  const { pathname, hash } = useLocation();
+
+  useEffect(() => {
+    if (!hash) window.scrollTo(0, 0);
+  }, [pathname, hash]);
+
+  return null;
+};
+
+// Small placeholder shown while a page's code loads
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="w-10 h-10 rounded-full border-4 border-teal-200 border-t-teal-600 animate-spin" />
+  </div>
+);
+
 const AppRoutes = () => {
   return (
+    <>
+    <ScrollToTop />
+    <Suspense fallback={<PageLoader />}>
     <Routes>
 
-      {/* ================= AUTH ================= */}
+      {/* ================= PUBLIC ================= */}
 
-      <Route
-        path="/"
-        element={<Navigate to="/login" replace />}
-      />
+      <Route path="/" element={<Home />} />
+      {/* About and FAQ are sections of the Home page */}
+      <Route path="/about" element={<Navigate to="/#about" replace />} />
+      <Route path="/faq" element={<Navigate to="/#faq" replace />} />
+
+
+      {/* ================= AUTH ================= */}
 
       <Route
         path="/login"
@@ -201,10 +228,12 @@ const AppRoutes = () => {
 
       <Route
         path="*"
-        element={<Navigate to="/login" replace />}
+        element={<Navigate to="/" replace />}
       />
 
     </Routes>
+    </Suspense>
+    </>
   );
 };
 

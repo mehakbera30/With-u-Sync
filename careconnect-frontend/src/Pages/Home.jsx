@@ -1,12 +1,11 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import {
   Activity,
   Bell,
   CalendarDays,
   CheckCircle2,
   FileText,
-  HeartPulse,
   Lock,
   Pill,
   ShieldCheck,
@@ -16,6 +15,8 @@ import {
 import PublicNavbar from "../components/PublicNavbar";
 import Footer from "../components/Footer";
 import siteConfig from "../config/siteConfig";
+import AboutSection from "./sections/AboutSection";
+import FaqSection from "./sections/FaqSection";
 
 const FEATURES = [
   {
@@ -46,14 +47,14 @@ const FEATURES = [
   {
     icon: ShieldCheck,
     title: "Role-based access",
-    text: "Patients, doctors and administrators each see only what they need, and nothing more.",
+    text: "Patients and doctors each see only what they need, and nothing more.",
   },
 ];
 
 const STEPS = [
   {
     title: "Create your account",
-    text: "Sign up as a patient in a minute. Doctors register too and are approved by an administrator.",
+    text: "Sign up as a patient in a minute. Doctors register too and are approved by our team.",
   },
   {
     title: "Book and consult",
@@ -88,27 +89,25 @@ const ROLES = [
     ],
     cta: { to: "/register", label: "Join as a doctor" },
   },
-  {
-    icon: HeartPulse,
-    title: "For administrators",
-    points: [
-      "Approve and manage doctors",
-      "Oversee patients and appointments",
-      "Monitor platform activity",
-      "Keep accounts secure",
-    ],
-    cta: { to: "/login", label: "Admin login" },
-  },
 ];
 
 const Home = () => {
+  const { hash } = useLocation();
+
+  // Opening /#about or /#faq scrolls straight to that section
+  useEffect(() => {
+    if (!hash) return;
+    const target = document.getElementById(hash.slice(1));
+    if (target) target.scrollIntoView();
+  }, [hash]);
+
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100">
       <PublicNavbar />
 
       <main>
         {/* ================= HERO ================= */}
-        <section className="bg-gradient-to-br from-teal-50 via-white to-emerald-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900">
+        <section id="home" className="bg-gradient-to-br from-teal-50 via-white to-emerald-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <span className="inline-block px-3 py-1 rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300 text-sm font-medium">
@@ -120,22 +119,16 @@ const Home = () => {
               </h1>
 
               <p className="mt-6 text-lg text-slate-600 dark:text-slate-300 max-w-xl leading-relaxed">
-                {siteConfig.description} Patients, doctors and administrators
-                work from one connected platform.
+                {siteConfig.description} Patients and doctors work together on one
+                connected platform.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link
-                  to="/register"
-                  className="px-7 py-3.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold shadow-sm transition"
-                >
+                <Link to="/register" className="px-7 py-3.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold shadow-sm transition">
                   Create free account
                 </Link>
 
-                <Link
-                  to="/login"
-                  className="px-7 py-3.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold hover:bg-white dark:hover:bg-slate-800 transition"
-                >
+                <Link to="/login" className="px-7 py-3.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold hover:bg-white dark:hover:bg-slate-800 transition">
                   Login
                 </Link>
               </div>
@@ -242,10 +235,10 @@ const Home = () => {
         {/* ================= ROLES ================= */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
           <h2 className="text-3xl sm:text-4xl font-bold text-center text-slate-900 dark:text-white">
-            One platform, three roles
+            One platform, two sides of care
           </h2>
 
-          <div className="mt-12 grid gap-6 lg:grid-cols-3">
+          <div className="mt-12 grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
             {ROLES.map(({ icon: Icon, title, points, cta }) => (
               <div
                 key={title}
@@ -271,18 +264,17 @@ const Home = () => {
                   ))}
                 </ul>
 
-                <Link
-                  to={cta.to}
-                  className="mt-6 inline-block text-center px-5 py-3 rounded-xl border border-teal-600 text-teal-700 dark:text-teal-300 font-semibold hover:bg-teal-50 dark:hover:bg-slate-800 transition"
-                >
-                  {cta.label}
-                </Link>
+                <Link to={cta.to} className="mt-6 inline-block text-center px-5 py-3 rounded-xl border border-teal-600 text-teal-700 dark:text-teal-300 font-semibold hover:bg-teal-50 dark:hover:bg-slate-800 transition">{cta.label}</Link>
               </div>
             ))}
           </div>
         </section>
 
-        {/* ================= SECURITY NOTE + CTA ================= */}
+        {/* ================= ABOUT + FAQ (same page) ================= */}
+        <AboutSection />
+        <FaqSection />
+
+        {/* ================= CTA ================= */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 lg:pb-20">
           <div className="rounded-3xl bg-gradient-to-r from-teal-600 to-emerald-600 text-white px-6 sm:px-12 py-12 text-center">
             <Lock size={30} className="mx-auto opacity-90" />
@@ -295,19 +287,11 @@ const Home = () => {
             </p>
 
             <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <Link
-                to="/register"
-                className="px-7 py-3.5 rounded-xl bg-white text-teal-700 font-semibold hover:bg-teal-50 transition"
-              >
+              <Link to="/register" className="px-7 py-3.5 rounded-xl bg-white text-teal-700 font-semibold hover:bg-teal-50 transition">
                 Create free account
               </Link>
 
-              <Link
-                to="/faq"
-                className="px-7 py-3.5 rounded-xl border border-white/70 text-white font-semibold hover:bg-white/10 transition"
-              >
-                Read the FAQ
-              </Link>
+              <a href="#faq" className="px-7 py-3.5 rounded-xl border border-white/70 text-white font-semibold hover:bg-white/10 transition">Read the FAQ</a>
             </div>
           </div>
         </section>

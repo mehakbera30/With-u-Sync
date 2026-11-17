@@ -146,11 +146,10 @@ const Footer = () => {
 
           {/* Professionals */}
           <div>
-            <h4 className="text-white font-semibold text-lg mb-5">Professionals</h4>
+            <h4 className="text-white font-semibold text-lg mb-5">For doctors</h4>
             <ul className="space-y-3">
               <li><Link to="/register" className={linkClass}>Join as a doctor</Link></li>
-              <li><Link to="/doctor/dashboard" className={linkClass}>Doctor portal</Link></li>
-              <li><Link to="/admin/dashboard" className={linkClass}>Admin portal</Link></li>
+              <li><Link to="/login" className={linkClass}>Doctor login</Link></li>
             </ul>
           </div>
 
@@ -184,9 +183,9 @@ const Footer = () => {
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
-            <Link to="/" className="hover:text-white">Home</Link>
-            <Link to="/about" className="hover:text-white">About Us</Link>
-            <Link to="/faq" className="hover:text-white">FAQ</Link>
+            <a href="#home" className="hover:text-white">Home</a>
+            <a href="#about" className="hover:text-white">About Us</a>
+            <a href="#faq" className="hover:text-white">FAQ</a>
             <Link to="/login" className="hover:text-white">Login</Link>
           </div>
         </div>
